@@ -1,0 +1,36 @@
+name: "Build Rust Images on GKE"
+on: # rebuild any PRs and main branch changes
+  pull_request:
+  push:
+    branches:
+      - main
+      - "releases/*"
+
+jobs:
+  BuildAndPushRustImages:
+    strategy:
+      matrix:
+        IMAGE_TARGET: ["release"]
+    permissions:
+      packages: write
+      contents: read
+    runs-on: high-perf-docker
+    steps:
+      - uses: actions/checkout@v3
+      - name: Log in to the Container registry
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: setup docker context for buildx
+        id: buildx-context
+        run: docker context create builders
+      - name: setup docker buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          endpoint: builders
+      - run: docker/docker-bake-rust-all.sh
+        env:
+          IMAGE_TARGET: ${{ matrix.IMAGE_TARGET }}
+

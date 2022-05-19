@@ -7,7 +7,7 @@ variable "BUILD_DATE" {}
 // this is the short GIT_SHA1 (8 chars). Tagging our docker images with that one is kinda deprecated and we might remove this in future.
 variable "GIT_REV" {}
 // this is the full GIT_SHA1 - let's use that as primary identify going forward
-variable "GIT_SHA1" {}
+variable "GITHUB_SHA" {}
 
 variable "AWS_ECR_ACCOUNT_NUM" {}
 
@@ -44,19 +44,19 @@ target "_common" {
   context    = "."
   cache-from = [
     // need to repeat all images here until https://github.com/docker/buildx/issues/934 is resolved
-    generate_cache_from("validator"),
-    generate_cache_from("indexer"),
-    generate_cache_from("validator_tcb"),
-    generate_cache_from("tools"),
-    generate_cache_from("init"),
-    generate_cache_from("txn-emitter"),
-    generate_cache_from("faucet"),
-    generate_cache_from("forge"),
+    // generate_cache_from("validator"),
+    // generate_cache_from("indexer"),
+    // generate_cache_from("validator_tcb"),
+    // generate_cache_from("tools"),
+    // generate_cache_from("init"),
+    // generate_cache_from("txn-emitter"),
+    // generate_cache_from("faucet"),
+    // generate_cache_from("forge"),
   ]
   labels = {
     "org.label-schema.schema-version" = "1.0",
-    "org.label-schema.build-date"     = "${BUILD_DATE}"
-    "org.label-schema.vcs-ref"        = "${GIT_REV}"
+    // "org.label-schema.build-date"     = "${BUILD_DATE}"
+    // "org.label-schema.vcs-ref"        = "${GIT_REV}"
   }
   args = {
     IMAGE_TARGET = "release"
@@ -66,49 +66,49 @@ target "_common" {
 target "validator" {
   inherits = ["_common"]
   target   = "validator"
-  cache-to = generate_cache_to("validator")
+  // cache-to = generate_cache_to("validator")
   tags     = generate_tags("validator")
 }
 
 target "indexer" {
   inherits = ["_common"]
   target   = "indexer"
-  cache-to = generate_cache_to("indexer")
+  // cache-to = generate_cache_to("indexer")
   tags     = generate_tags("indexer")
 }
 
 target "safety-rules" {
   inherits = ["_common"]
   target   = "safety-rules"
-  cache-to = generate_cache_to("validator_tcb")
+  // cache-to = generate_cache_to("validator_tcb")
   tags     = generate_tags("validator_tcb")
 }
 
 target "tools" {
   inherits = ["_common"]
   target   = "tools"
-  cache-to = generate_cache_to("tools")
+  // cache-to = generate_cache_to("tools")
   tags     = generate_tags("tools")
 }
 
 target "init" {
   inherits = ["_common"]
   target   = "init"
-  cache-to = generate_cache_to("init")
+  // cache-to = generate_cache_to("init")
   tags     = generate_tags("init")
 }
 
 target "txn-emitter" {
   inherits = ["_common"]
   target   = "txn-emitter"
-  cache-to = generate_cache_to("txn-emitter")
+  // cache-to = generate_cache_to("txn-emitter")
   tags     = generate_tags("txn-emitter")
 }
 
 target "faucet" {
   inherits = ["_common"]
   target   = "faucet"
-  cache-to = generate_cache_to("faucet")
+  // cache-to = generate_cache_to("faucet")
   tags     = generate_tags("faucet")
   args = {
     IMAGE_TARGET = "test"
@@ -118,7 +118,7 @@ target "faucet" {
 target "forge" {
   inherits = ["_common"]
   target   = "forge"
-  cache-to = generate_cache_to("forge")
+  // cache-to = generate_cache_to("forge")
   tags     = generate_tags("forge")
   args = {
     IMAGE_TARGET = "test"
@@ -139,7 +139,8 @@ function "generate_tags" {
   params = [target]
   result = [
     // "${ecr_base}/${target}:dev_${GIT_REV}",
-    // "${ecr_base}/${target}:${GIT_REV}",
-    "${ecr_base}/${target}:${GIT_SHA1}", // only tag with full GIT_SHA1 unless it turns out we really need any of the other variations
+    "${gh_image_cache}/${target}:${GITHUB_SHA}",
+    
+    // "${ecr_base}/${target}:${GIT_SHA1}", // only tag with full GIT_SHA1 unless it turns out we really need any of the other variations
   ]
 }

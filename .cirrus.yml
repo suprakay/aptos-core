@@ -1,0 +1,38 @@
+gcp_credentials: ENCRYPTED[!7f7bb0872911374f5c86a6021d6ca058d1f5fb7160a01250b288688528ae941cfe691161edcc57a5bda441e70b9d1234!]
+
+# build_task:
+#   # container:
+#   #   image: rust:1.61.0-buster
+#   #   cpu: 8
+#   #   memory: 32G
+#   # install_script: apt-get update && apt-get install -y cmake curl clang git pkg-config libssl-dev libpq-dev
+#   # registry_cache:
+#   #   folder: $CARGO_HOME/registry
+#   #   fingerprint_script: cat Cargo.lock
+#   # target_cache:
+#   #   folder: target
+#   #   fingerprint_script:
+#   #     - rustc --version
+#   #     - cat Cargo.lock
+#   # build_script: IMAGE_TARGET=release docker/build-common.sh
+#   # before_cache_script: rm -rf $CARGO_HOME/registry/index
+
+gke_build_task:
+  gke_container:
+    image: rust:1.61.0-buster
+    cluster_name: ci-cluster
+    location: us-west1-b # cluster zone or region for multi-zone clusters
+    namespace: cirrus-ci # Kubernetes namespace to create pods in
+    cpu: 58
+    memory: 200GB
+  install_script: apt-get update && apt-get install -y cmake curl clang git pkg-config libssl-dev libpq-dev
+  registry_cache:
+    folder: $CARGO_HOME/registry
+    fingerprint_script: cat Cargo.lock
+  target_cache:
+    folder: target
+    fingerprint_script:
+      - rustc --version
+      - cat Cargo.lock
+  build_script: IMAGE_TARGET=release docker/build-common.sh
+  before_cache_script: rm -rf $CARGO_HOME/registry/index
